@@ -122,7 +122,13 @@ class helmet(Item): # Класс шлема. Может перенести иг�
 class hammer(Item): # Класс молота. Может "ударить" игрока на половину здоровья.
     def activate(self, player, enemyes, FSize): # Активирует эффект
         player.health = int(player.health * 0.5)
-
+class finish(Item): # Класс финиша. Использует некоторые механики артефактов. Завершает игру.
+    def activate(self, player, enemyes, FSize): # Активирует эффект (завершает игру)
+        pygame.quit()
+        print('You win!\n' * 30)
+        input('Press [Enter] to quit...')
+        exit()
+        
 class person: # Класс персонажа. Хранит здоровье, картинку и может двигаться.
     pos = []
     cell_pos = [0, 0]
@@ -191,7 +197,7 @@ class enemy(person): # Класс врага. Может "догонять" др
         if delta == [0, 0]:
             target.death(scr, fld_arr)
         
-class TGameMech # Класс игры. Хранит все игровые переменные, константы и т.д. Может запустить игру.:
+class TGameMech: # Класс игры. Хранит все игровые переменные, константы и т.д. Может запустить игру.:
     field = []
     FSize = 12
     im_lib = [[pygame.image.load('assets/fire1.bmp'), pygame.image.load('assets/fire2.bmp'), pygame.image.load('assets/fire3.bmp')],
@@ -224,9 +230,11 @@ class TGameMech # Класс игры. Хранит все игровые пер
         for i in range(randint(2, 5)):#3):
             self.enemyes.append(enemy([randint(0, self.FSize - 1) * 60, randint(0, self.FSize - 1) * 60], EImg))
         slides = [[ImLoad('assets/TheGreatHelmet1.bmp'), ImLoad('assets/TheGreatHelmet2.bmp'), ImLoad('assets/TheGreatHelmet3.bmp'), ImLoad('assets/TheGreatHelmet2.bmp')],
-                  [ImLoad('assets/TheGreatHammer1.bmp'), ImLoad('assets/TheGreatHammer2.bmp'), ImLoad('assets/TheGreatHammer3.bmp'), ImLoad('assets/TheGreatHammer2.bmp')]]
+                  [ImLoad('assets/TheGreatHammer1.bmp'), ImLoad('assets/TheGreatHammer2.bmp'), ImLoad('assets/TheGreatHammer3.bmp'), ImLoad('assets/TheGreatHammer2.bmp')],
+                  [ImLoad('assets/finish.bmp')]]
         self.items = [helmet(self.field[randint(0, self.FSize - 1)][randint(1, self.FSize - 1)], slides[0], 0.15),
-                      hammer(self.field[randint(0, self.FSize - 1)][randint(1, self.FSize - 1)], slides[1], 0.1)]
+                      hammer(self.field[randint(0, self.FSize - 1)][randint(1, self.FSize - 1)], slides[1], 0.1),
+                      finish(self.field[randint(0, self.FSize - 1)][randint(1, self.FSize - 1)], slides[2], 0.1)]
         self.max_items = len(self.items)
     def start(self): # Начинает созданную игру и ведёт её до конца.
         global FullAnim
@@ -270,7 +278,7 @@ class TGameMech # Класс игры. Хранит все игровые пер
             for en in self.enemyes:
                 scr.blit(en.image, en.pos)
             #for item in items:
-            if len(self.collected) == self.max_items:
+            if len(self.collected) == self.max_items and False:
                 scr.blit(font.render('You WIN!!!', 0, [255, 0, 0]), [self.FSize * 60, 20])
                 self.WIN = True
                 for en in self.enemyes:
