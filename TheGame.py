@@ -1,6 +1,17 @@
 import pygame
 #from random import randint
 import time
+from GameCell import *
+from WaterCell import *
+from GroundCell import *
+from FireCell import *
+from item import *
+from hammer import *
+from helmet import *
+from finish import *
+from person import *
+from enemy import *
+from standart import *
 
 pygame.init()
 
@@ -8,196 +19,196 @@ FullAnim = True
 
 INF = 1000000001
 
-seed = int(input('Enter game seed --> ')) % INF
+#seed = int(input('Enter game seed --> ')) % INF
 
-def randint(a, b): # Функция рандома. Нужна для возможности использования сидов (подробнее - "https://www.youtube.com/watch?v=FwUsIr5OHFE").
-    global seed
-    if a >= b:
-        return a
-    val = sum([int(x) % 7 for x in str(seed)])
-    if val != 0:
-        seed = ((seed // val) * (val + 13)) % INF
-    else:
-        seed = INF - 1
-    #print(seed)
-    return seed % (b - a + 1) + a
+##def randint(a, b): # Функция рандома. Нужна для возможности использования сидов (подробнее - "https://www.youtube.com/watch?v=FwUsIr5OHFE").
+##    global seed
+##    if a >= b:
+##        return a
+##    val = sum([int(x) % 7 for x in str(seed)])
+##    if val != 0:
+##        seed = ((seed // val) * (val + 13)) % INF
+##    else:
+##        seed = INF - 1
+##    #print(seed)
+##    return seed % (b - a + 1) + a
+##
+##def sign(x): # Мат. функция сигнума.
+##    if x == 0:
+##        return 0
+##    return x // abs(x)
+##
+##def dist(a, b = [0, 0]): # Высчитывает линейное расстояние между точками.
+##    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+##
+##def ImLoad(imname, pix = [0, 0]): # Загружает и возвращает изображение (при этом фон делается прозрачным).
+##    img = pygame.image.load(imname)
+##    img.set_colorkey(img.get_at(pix))
+##    return img
 
-def sign(x): # Мат. функция сигнума.
-    if x == 0:
-        return 0
-    return x // abs(x)
-
-def dist(a, b = [0, 0]): # Высчитывает линейное расстояние между точками.
-    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
-
-def ImLoad(imname, pix = [0, 0]): # Загружает и возвращает изображение (при этом фон делается прозрачным).
-    img = pygame.image.load(imname)
-    img.set_colorkey(img.get_at(pix))
-    return img
-
-class TGameCell: # Класс стандартной игрофой клетки. Хранит свою картинку, силу и может отрисовывать себя же.
-    pos = [0, 0]
-    img = pygame.Surface([10, 10])
-    damage = 0
-    def __init__(self, img, pos, damage = 0): # Создаёт игровую клетку
-        self.img = img
-        self.pos = pos
-        self.damage = damage
-    def draw(self, scr): # Рисует клетку в заданных координатах
-        scr.blit(self.img, self.pos)
-
-class TFireCell(TGameCell): # Клетка огня. В дополнение от родителя проигрывает анимацию.
-    TYPE = 'fire'
-    def magic_old(self, scr): # Старая версия анимации. Если всё же хотите её увидеть, то можете назвать её "magic" (без кавычек) и переназвать оригинальную функцию.
-        for stage in range(9):
-            pygame.event.get()
-            for i in range(self.damage * 90):
-                R = randint(100, 255)
-                scr.set_at([self.pos[0] + randint(1, self.img.get_width() - 1), self.pos[1] + randint(1, self.img.get_height() - 1)], [R + randint(0, 255 - R), R, 0])
-            pygame.display.update()
-            pygame.time.delay(100)
-    def magic(self, scr): # Активирует собственную магию.
-        for stage in range(9):
-            pygame.event.get()
-            N = self.damage * 3
-            for i in range(N):
-                R = randint(100, 255)
-                start = [self.pos[0] + 30 + randint(-10, 10), self.pos[1] + 60 - 2]
-                finish = [start[0] + randint(-5, 5), start[1] - randint(5, 15) * self.damage]
-                pygame.draw.line(scr, [R + randint(0, 255 - R), R, 0], start, finish, 5)
-                #pygame.draw.line(scr, [R + randint(0, 255 - R), R, 0], [self.pos[0] + randint(0, 60), self.pos[1] + 60 - i * 60 / N], [self.pos[0] + randint(0, 60), self.pos[1] + 60 - i * 60 / N - randint(0, 60 // N)])
-            pygame.display.update()
-            if FullAnim:
-                pygame.time.delay(100)
-
-class TWaterCell(TGameCell): # Клетка воды (льда). В дополнение от родителя проигрывает анимацию.
-    TYPE = 'water'
-    def magic(self, scr): # Активирует собственную магию.
-        for stage in range(3 * self.damage):
-            pygame.event.get()
-            N = self.damage * 3
-            start = [self.pos[0] + 30 + randint(-10, 10), self.pos[1] + randint(0, 58)]
-            for i in range(N):
-                R = randint(0, 255)
-                finish = [start[0] + randint(-3, 3) * self.damage, start[1] + randint(-3, 3) * self.damage]
-                pygame.draw.line(scr, [R, R, 255], start, finish, 5)
-            pygame.display.update()
-            if FullAnim:
-                pygame.time.delay(300 // self.damage)
-
-class TGroundCell(TGameCell): # Клетка земли. В дополнение от родителя проигрывает анимацию.
-    TYPE = 'ground'
-    def magic(self, scr): # Активирует собственную магию.
-        starts = [[self.pos[0] + 30, self.pos[1] + 58]] * self.damage * 2
-        for stage in range(3 * self.damage):
-            pygame.event.get()
-            N = self.damage * 3
-            for i, start in enumerate(starts):
-                finish = [start[0] + randint(-5, 5), start[1] - 6]
-                pygame.draw.line(scr, [randint(0, 75), 120, randint(0, 75)], start, finish, 5)
-                starts[i] = finish
-            pygame.display.update()
-            if FullAnim:
-                pygame.time.delay(300 // self.damage)
-
-class Item: # Класс артефакта. Хранит свою анимацию и может возвращать кадр в зависимости от времени.
-    par_cell = TGameCell(pygame.Surface([10, 10]), [0, 0])
-    slides = []
-    delta_frame = 0
-    def __init__(self, par_cell, slides, delta_frame = 1): # Создаёт артефакт.
-        self.par_cell = par_cell
-        self.slides = slides.copy()
-        self.delta_frame = delta_frame
-    def get_anim_tick(self, tm): # Возвращает текущий кадр анимации
-        index = (tm // self.delta_frame) % len(self.slides)
-        return self.slides[int(index)]
-
-class helmet(Item): # Класс шлема. Может перенести игрока в случайную клетку (не занятую скелетом).
-    def activate(self, player, enemyes, FSize):# Активирует эффект
-        player.health = int(player.health * 1.5)
-        player.pos = [randint(0, FSize - 1) * 60, randint(0, FSize - 1) * 60]
-        while player.pos in [en.pos for en in enemyes]:
-            player.pos = [randint(0, FSize - 1) * 60, randint(0, FSize - 1) * 60]
-        player.cell_pos_upd()
-class hammer(Item): # Класс молота. Может "ударить" игрока на половину здоровья.
-    def activate(self, player, enemyes, FSize): # Активирует эффект
-        player.health = int(player.health * 0.5)
-class finish(Item): # Класс финиша. Использует некоторые механики артефактов. Завершает игру.
-    def activate(self, player, enemyes, FSize): # Активирует эффект (завершает игру)
-        pygame.quit()
-        print('You win!\n' * 30)
-        input('Press [Enter] to quit...')
-        exit()
+##class TGameCell: # Класс стандартной игрофой клетки. Хранит свою картинку, силу и может отрисовывать себя же.
+##    pos = [0, 0]
+##    img = pygame.Surface([10, 10])
+##    damage = 0
+##    def __init__(self, img, pos, damage = 0): # Создаёт игровую клетку
+##        self.img = img
+##        self.pos = pos
+##        self.damage = damage
+##    def draw(self, scr): # Рисует клетку в заданных координатах
+##        scr.blit(self.img, self.pos)
+##
+##class TFireCell(TGameCell): # Клетка огня. В дополнение от родителя проигрывает анимацию.
+##    TYPE = 'fire'
+##    def magic_old(self, scr): # Старая версия анимации. Если всё же хотите её увидеть, то можете назвать её "magic" (без кавычек) и переназвать оригинальную функцию.
+##        for stage in range(9):
+##            pygame.event.get()
+##            for i in range(self.damage * 90):
+##                R = randint(100, 255)
+##                scr.set_at([self.pos[0] + randint(1, self.img.get_width() - 1), self.pos[1] + randint(1, self.img.get_height() - 1)], [R + randint(0, 255 - R), R, 0])
+##            pygame.display.update()
+##            pygame.time.delay(100)
+##    def magic(self, scr): # Активирует собственную магию.
+##        for stage in range(9):
+##            pygame.event.get()
+##            N = self.damage * 3
+##            for i in range(N):
+##                R = randint(100, 255)
+##                start = [self.pos[0] + 30 + randint(-10, 10), self.pos[1] + 60 - 2]
+##                finish = [start[0] + randint(-5, 5), start[1] - randint(5, 15) * self.damage]
+##                pygame.draw.line(scr, [R + randint(0, 255 - R), R, 0], start, finish, 5)
+##                #pygame.draw.line(scr, [R + randint(0, 255 - R), R, 0], [self.pos[0] + randint(0, 60), self.pos[1] + 60 - i * 60 / N], [self.pos[0] + randint(0, 60), self.pos[1] + 60 - i * 60 / N - randint(0, 60 // N)])
+##            pygame.display.update()
+##            if FullAnim:
+##                pygame.time.delay(100)
+##
+##class TWaterCell(TGameCell): # Клетка воды (льда). В дополнение от родителя проигрывает анимацию.
+##    TYPE = 'water'
+##    def magic(self, scr): # Активирует собственную магию.
+##        for stage in range(3 * self.damage):
+##            pygame.event.get()
+##            N = self.damage * 3
+##            start = [self.pos[0] + 30 + randint(-10, 10), self.pos[1] + randint(0, 58)]
+##            for i in range(N):
+##                R = randint(0, 255)
+##                finish = [start[0] + randint(-3, 3) * self.damage, start[1] + randint(-3, 3) * self.damage]
+##                pygame.draw.line(scr, [R, R, 255], start, finish, 5)
+##            pygame.display.update()
+##            if FullAnim:
+##                pygame.time.delay(300 // self.damage)
+##
+##class TGroundCell(TGameCell): # Клетка земли. В дополнение от родителя проигрывает анимацию.
+##    TYPE = 'ground'
+##    def magic(self, scr): # Активирует собственную магию.
+##        starts = [[self.pos[0] + 30, self.pos[1] + 58]] * self.damage * 2
+##        for stage in range(3 * self.damage):
+##            pygame.event.get()
+##            N = self.damage * 3
+##            for i, start in enumerate(starts):
+##                finish = [start[0] + randint(-5, 5), start[1] - 6]
+##                pygame.draw.line(scr, [randint(0, 75), 120, randint(0, 75)], start, finish, 5)
+##                starts[i] = finish
+##            pygame.display.update()
+##            if FullAnim:
+##                pygame.time.delay(300 // self.damage)
+##
+##class Item: # Класс артефакта. Хранит свою анимацию и может возвращать кадр в зависимости от времени.
+##    par_cell = TGameCell(pygame.Surface([10, 10]), [0, 0])
+##    slides = []
+##    delta_frame = 0
+##    def __init__(self, par_cell, slides, delta_frame = 1): # Создаёт артефакт.
+##        self.par_cell = par_cell
+##        self.slides = slides.copy()
+##        self.delta_frame = delta_frame
+##    def get_anim_tick(self, tm): # Возвращает текущий кадр анимации
+##        index = (tm // self.delta_frame) % len(self.slides)
+##        return self.slides[int(index)]
+##
+##class helmet(Item): # Класс шлема. Может перенести игрока в случайную клетку (не занятую скелетом).
+##    def activate(self, player, enemyes, FSize):# Активирует эффект
+##        player.health = int(player.health * 1.5)
+##        player.pos = [randint(0, FSize - 1) * 60, randint(0, FSize - 1) * 60]
+##        while player.pos in [en.pos for en in enemyes]:
+##            player.pos = [randint(0, FSize - 1) * 60, randint(0, FSize - 1) * 60]
+##        player.cell_pos_upd()
+##class hammer(Item): # Класс молота. Может "ударить" игрока на половину здоровья.
+##    def activate(self, player, enemyes, FSize): # Активирует эффект
+##        player.health = int(player.health * 0.5)
+##class finish(Item): # Класс финиша. Использует некоторые механики артефактов. Завершает игру.
+##    def activate(self, player, enemyes, FSize): # Активирует эффект (завершает игру)
+##        pygame.quit()
+##        print('You win!\n' * 30)
+##        input('Press [Enter] to quit...')
+##        exit()
+##        
+##class person: # Класс персонажа. Хранит здоровье, картинку и может двигаться.
+##    pos = []
+##    cell_pos = [0, 0]
+##    image = 0
+##    health = 60
+##    def __init__(self, pos, img): # Создаёт персонажа и задаёт начальные параметры
+##        self.pos = pos
+##        self.image = img
+##        self.cell_pos = [self.pos[0] // 60, self.pos[1] // 60]
+##    def cell_pos_upd(self): # Обновляет клеточную позицию игрока.
+##        self.cell_pos = [self.pos[0] // 60, self.pos[1] // 60]
+##    def death(self, scr, fld_arr): # Проигрывает смерть персонажа и конец игры.
+##        global FullAnim
+##        FullAnim = False
+##        self.image = ImLoad('assets/Graveyard.bmp')
+##        scr.blit(self.image, [int(x) for x in self.pos])
+##        for i in range(len(fld_arr)):
+##            for j in range(len(fld_arr[i])):
+##                fld_arr[i][j].magic(scr)
+##        KG = True
+##        while KG:
+##            for event in pygame.event.get():
+##                if event.type == pygame.QUIT:
+##                    KG = False
+##        pygame.quit()
+##        exit()
+##    def step(self, stp, fld, fld_arr, scr): # Ведёт персонажа в заданном направлении
+##        if FullAnim:
+##            N = 100
+##        else:
+##            N = 1
+##        self.cell_pos[0] += stp[0] // 60
+##        self.cell_pos[1] += stp[1] // 60
+##        #print(self.cell_pos)
+##        for i in range(N):
+##            pygame.event.get()
+##            scr.blit(fld, [0, 0])
+##            self.pos[0] += stp[0] / N
+##            self.pos[1] += stp[1] / N
+##            scr.blit(self.image, [int(x) for x in self.pos])
+##            pygame.display.update()
+##            pygame.time.delay(10)
+##        cell = fld_arr[self.cell_pos[0]][self.cell_pos[1]]
+##        cell.magic(scr)
+##        if cell.TYPE == 'fire':
+##            self.health += cell.damage * 5
+##        else:
+##            self.health -= cell.damage * 5
+##        if self.health <= 0:
+##            self.death(scr, fld_arr)
+##
+##class enemy(person): # Класс врага. Может "догонять" другого персонажа и реализует собственное бессмертие.
+##    def TStep(self, target, fld, fld_arr, scr, static = False): # Определяет направление шага и вызывает step на себя же.
+##        #print(target.cell_pos)
+##        for _ in range(1 if not static else 0):
+##            delta = [target.cell_pos[0] - self.cell_pos[0], target.cell_pos[1] - self.cell_pos[1]]
+##            if delta != [0, 0]:
+##                R = randint(0, 1)
+##                #print(delta)
+##                self.health = 200
+##                if abs(delta[0]) > abs(delta[1]) or (delta[0] == delta[1] and R == 0):
+##                    self.step([sign(delta[0]) * 60, 0], fld, fld_arr, scr)
+##                else:#elif abs(delta[0]) < abs(delta[1]) or (delta[0] == delta[1] and R == 1):
+##                    self.step([0, sign(delta[1]) * 60], fld, fld_arr, scr)
+##        delta = [target.cell_pos[0] - self.cell_pos[0], target.cell_pos[1] - self.cell_pos[1]]
+##        if delta == [0, 0]:
+##            target.death(scr, fld_arr)
         
-class person: # Класс персонажа. Хранит здоровье, картинку и может двигаться.
-    pos = []
-    cell_pos = [0, 0]
-    image = 0
-    health = 60
-    def __init__(self, pos, img): # Создаёт персонажа и задаёт начальные параметры
-        self.pos = pos
-        self.image = img
-        self.cell_pos = [self.pos[0] // 60, self.pos[1] // 60]
-    def cell_pos_upd(self): # Обновляет клеточную позицию игрока.
-        self.cell_pos = [self.pos[0] // 60, self.pos[1] // 60]
-    def death(self, scr, fld_arr): # Проигрывает смерть персонажа и конец игры.
-        global FullAnim
-        FullAnim = False
-        self.image = ImLoad('assets/Graveyard.bmp')
-        scr.blit(self.image, [int(x) for x in self.pos])
-        for i in range(len(fld_arr)):
-            for j in range(len(fld_arr[i])):
-                fld_arr[i][j].magic(scr)
-        KG = True
-        while KG:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    KG = False
-        pygame.quit()
-        exit()
-    def step(self, stp, fld, fld_arr, scr): # Ведёт персонажа в заданном направлении
-        if FullAnim:
-            N = 100
-        else:
-            N = 1
-        self.cell_pos[0] += stp[0] // 60
-        self.cell_pos[1] += stp[1] // 60
-        #print(self.cell_pos)
-        for i in range(N):
-            pygame.event.get()
-            scr.blit(fld, [0, 0])
-            self.pos[0] += stp[0] / N
-            self.pos[1] += stp[1] / N
-            scr.blit(self.image, [int(x) for x in self.pos])
-            pygame.display.update()
-            pygame.time.delay(10)
-        cell = fld_arr[self.cell_pos[0]][self.cell_pos[1]]
-        cell.magic(scr)
-        if cell.TYPE == 'fire':
-            self.health += cell.damage * 5
-        else:
-            self.health -= cell.damage * 5
-        if self.health <= 0:
-            self.death(scr, fld_arr)
-
-class enemy(person): # Класс врага. Может "догонять" другого персонажа и реализует собственное бессмертие.
-    def TStep(self, target, fld, fld_arr, scr, static = False): # Определяет направление шага и вызывает step на себя же.
-        #print(target.cell_pos)
-        for _ in range(1 if not static else 0):
-            delta = [target.cell_pos[0] - self.cell_pos[0], target.cell_pos[1] - self.cell_pos[1]]
-            if delta != [0, 0]:
-                R = randint(0, 1)
-                #print(delta)
-                self.health = 200
-                if abs(delta[0]) > abs(delta[1]) or (delta[0] == delta[1] and R == 0):
-                    self.step([sign(delta[0]) * 60, 0], fld, fld_arr, scr)
-                else:#elif abs(delta[0]) < abs(delta[1]) or (delta[0] == delta[1] and R == 1):
-                    self.step([0, sign(delta[1]) * 60], fld, fld_arr, scr)
-        delta = [target.cell_pos[0] - self.cell_pos[0], target.cell_pos[1] - self.cell_pos[1]]
-        if delta == [0, 0]:
-            target.death(scr, fld_arr)
-        
-class TGameMech: # Класс игры. Хранит все игровые переменные, константы и т.д. Может запустить игру.:
+class TGameMech: # Класс игры. Хранит все игровые переменные, константы и т.д. Может запустить игру.
     field = []
     FSize = 12
     im_lib = [[pygame.image.load('assets/fire1.bmp'), pygame.image.load('assets/fire2.bmp'), pygame.image.load('assets/fire3.bmp')],
